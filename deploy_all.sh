@@ -47,14 +47,9 @@ if ! command_exists gh; then
   print_warning "To create GitHub releases, install GitHub CLI: https://cli.github.com/"
   CREATE_RELEASE=false
 else
-  # Check if logged in to GitHub CLI
-  if ! gh auth status &>/dev/null; then
-    print_warning "You're not logged in to GitHub CLI. We'll create tags but not GitHub releases."
-    print_warning "To login, run: gh auth login"
-    CREATE_RELEASE=false
-  else
-    CREATE_RELEASE=true
-  fi
+  # Skip GitHub CLI login check and always set CREATE_RELEASE to false
+  print_warning "Skipping GitHub release creation. Only creating tags."
+  CREATE_RELEASE=false
 fi
 
 # Check if we're in a Git repository

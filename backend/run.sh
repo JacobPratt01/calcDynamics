@@ -6,4 +6,5 @@ if [ -d "venv" ]; then
 fi
 
 # Run the application with gunicorn
-exec gunicorn --bind 0.0.0.0:5001 app:app 
+# Use python3 explicitly
+exec python3 -m gunicorn --bind 0.0.0.0:5001 app:app 

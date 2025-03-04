@@ -5,7 +5,7 @@ matplotlib==3.7.1
 scipy==1.10.1
 sympy==1.12
 triangle==20230923
-gunicorn==21.2.0
+gunicorn==20.1.0
 Werkzeug==2.0.1
 Jinja2==3.1.2
 MarkupSafe==2.1.2

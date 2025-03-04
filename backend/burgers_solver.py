@@ -279,7 +279,11 @@ def simulate_burgers(params):
     
     # Return results
     return {
-        'plots': plots,
+        'plots': {
+            'waterfall': plots.get('time_evolution', ''),
+            'animation': plots.get('final_solution', ''),
+            'individual': plots.get('time_evolution', '')
+        },
         'parameters': {
             'dt': dt,
             'T': T,

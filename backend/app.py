@@ -332,10 +332,13 @@ def heat_equation_endpoint():
         "Heat Equation Solution - Multiple Time Steps"
     )
     
+    # Format the response to match what the frontend expects
     return jsonify({
         "data": result,
-        "plots": individual_plots,
-        "combined_plot": combined_plot,
+        "plots": {
+            "individual": combined_plot,  # Use combined_plot for individual view
+            "animation": individual_plots[0]["plot"] if individual_plots else None  # Use first plot for animation
+        },
         "selected_times": [result["t"][idx] for idx in time_indices]
     })
 
@@ -358,9 +361,15 @@ def wave_equation_endpoint():
     # Get selected time steps or use defaults
     selected_times = data.get('selected_times', None)
     
-    # Initial displacement is 0 everywhere
-    initial_disp_values = np.zeros(num_x)
-    initial_vel_values = np.zeros(num_x)  # Zero initial velocity
+    # Initial displacement (sine wave)
+    initial_displacement = data.get('initial_displacement', None)
+    if initial_displacement is None:
+        initial_displacement = np.sin(np.pi * np.linspace(0, length, num_x) / length)
+    
+    # Initial velocity (zero everywhere)
+    initial_velocity = data.get('initial_velocity', None)
+    if initial_velocity is None:
+        initial_velocity = np.zeros(num_x)
     
     result = solve_wave_equation(
         length, 
@@ -368,8 +377,8 @@ def wave_equation_endpoint():
         num_x, 
         num_t, 
         wave_speed, 
-        initial_disp_values, 
-        initial_vel_values,
+        initial_displacement,
+        initial_velocity,
         boundary_type,
         left_value,
         right_value
@@ -404,10 +413,13 @@ def wave_equation_endpoint():
         "Wave Equation Solution - Multiple Time Steps"
     )
     
+    # Format the response to match what the frontend expects
     return jsonify({
         "data": result,
-        "plots": individual_plots,
-        "combined_plot": combined_plot,
+        "plots": {
+            "individual": combined_plot,  # Use combined_plot for individual view
+            "animation": individual_plots[0]["plot"] if individual_plots else None  # Use first plot for animation
+        },
         "selected_times": [result["t"][idx] for idx in time_indices]
     })
 

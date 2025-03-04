@@ -41,6 +41,22 @@ if ! command_exists eb; then
   exit 1
 fi
 
+# Check if GitHub CLI is installed (for creating releases)
+if ! command_exists gh; then
+  print_warning "GitHub CLI is not installed. We'll create tags but not GitHub releases."
+  print_warning "To create GitHub releases, install GitHub CLI: https://cli.github.com/"
+  CREATE_RELEASE=false
+else
+  # Check if logged in to GitHub CLI
+  if ! gh auth status &>/dev/null; then
+    print_warning "You're not logged in to GitHub CLI. We'll create tags but not GitHub releases."
+    print_warning "To login, run: gh auth login"
+    CREATE_RELEASE=false
+  else
+    CREATE_RELEASE=true
+  fi
+fi
+
 # Check if we're in a Git repository
 if [ ! -d .git ]; then
   print_error "Not in a Git repository. Please run this script from the root of your Git repository."
@@ -104,11 +120,34 @@ fi
 print_message "Frontend deployed successfully!"
 cd ..
 
-# Create a deployment tag
-TAG_NAME="deployment-$(date +"%Y%m%d-%H%M%S")"
+# Create a deployment tag/release
+VERSION=$(date +"%Y.%m.%d-%H%M")
+TAG_NAME="v$VERSION"
+RELEASE_TITLE="Deployment $VERSION"
+RELEASE_NOTES="Deployment on $TIMESTAMP\n\n"
+
+# Add recent commits to release notes
+RELEASE_NOTES+="## Recent Changes\n"
+RELEASE_NOTES+=$(git log -5 --pretty=format:"* %s (%h)" --abbrev-commit)
+
 print_message "Creating deployment tag: $TAG_NAME"
 git tag -a "$TAG_NAME" -m "Deployment on $TIMESTAMP"
 git push origin "$TAG_NAME"
+
+# Create GitHub release if GitHub CLI is available
+if [ "$CREATE_RELEASE" = true ]; then
+  print_message "Creating GitHub release: $RELEASE_TITLE"
+  echo -e "$RELEASE_NOTES" | gh release create "$TAG_NAME" --title "$RELEASE_TITLE" --notes-file -
+  
+  if [ $? -ne 0 ]; then
+    print_warning "Failed to create GitHub release. The tag was still created."
+  else
+    print_message "GitHub release created successfully!"
+  fi
+else
+  print_message "Skipping GitHub release creation. Tag was created."
+  print_message "To create a release manually, visit: https://github.com/$(git config --get remote.origin.url | sed 's/.*github.com[:\/]\(.*\)\.git/\1/')/releases/new"
+fi
 
 print_message "Deployment completed successfully!"
 print_message "Backend and frontend have been deployed, and changes have been pushed to GitHub."
